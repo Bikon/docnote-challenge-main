@@ -1,0 +1,8 @@
+{
+    "projects": {
+        "prod": "demo-docnote-e7f1e",
+        "default": "demo-docnote-e7f1e"
+    },
+    "targets": {},
+    "etags": {}
+}
