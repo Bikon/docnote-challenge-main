@@ -23,7 +23,7 @@ const RecordingScreen: React.FC = () => {
   const handleTranscription = async () => {
     try {
       setIsProcessing(true);
-      const uri = await stopRecording(); // ⏹ остановка записи и получение URI
+      const uri = await stopRecording();
       if (!uri) {
         setIsProcessing(false);
         Alert.alert("Error", "No audio was recorded.");
