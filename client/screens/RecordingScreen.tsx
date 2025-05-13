@@ -5,36 +5,34 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { useRecording } from "../hooks/useRecording";
 import RecordingControls from "../components/RecordingControls";
-import RecordButton from "../components/RecordButton";
 import { processAudioForTranscription } from "../utils/audioProcessor";
 
 const RecordingScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {
-    isRecording,
+    status,
     durationMillis,
-    audioUri,
     startRecording,
+    pauseRecording,
+    resumeRecording,
     stopRecording,
   } = useRecording();
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleRecordPress = async () => {
-    if (isRecording) {
-      await stopRecording();
-    } else {
-      await startRecording();
-    }
-  };
-
   const handleTranscription = async () => {
-    if (!audioUri) return;
     try {
       setIsProcessing(true);
-      const transcript = await processAudioForTranscription(audioUri);
+      const uri = await stopRecording(); // ⏹ остановка записи и получение URI
+      if (!uri) {
+        setIsProcessing(false);
+        Alert.alert("Error", "No audio was recorded.");
+        return;
+      }
+
+      const transcript = await processAudioForTranscription(uri);
       setIsProcessing(false);
-      navigation.navigate("Report", { transcript });
+      navigation.navigate("Report", { transcript, audioUri: uri });
     } catch (error) {
       setIsProcessing(false);
       Alert.alert("Transcription Error", "Failed to transcribe audio.");
@@ -45,15 +43,13 @@ const RecordingScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <RecordingControls
-        isRecording={isRecording}
+        status={status}
         durationMillis={durationMillis}
-        onRecordPress={handleRecordPress}
+        onStart={startRecording}
+        onPause={pauseRecording}
+        onResume={resumeRecording}
+        onStop={handleTranscription}
       />
-      {audioUri && !isProcessing && (
-        <View style={styles.transcriptionArea}>
-          <RecordButton isRecording={false} onPress={handleTranscription} />
-        </View>
-      )}
       {isProcessing && <ActivityIndicator size="large" color="#007AFF" />}
     </View>
   );
@@ -64,10 +60,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 20,
-  },
-  transcriptionArea: {
-    marginTop: 30,
-    alignItems: "center",
   },
 });
 
