@@ -1,56 +1,55 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
   ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  Alert,
+  View,
 } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useHistory } from "../hooks/useHistory";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
-import { useHistory } from "../hooks/useHistory";
 
 const HistoryScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { history, loading, deleteRecording } = useHistory();
+  const { loading, history, loadHistory } = useHistory();
 
-  const handleDelete = (uri: string) => {
-    Alert.alert("Delete recording", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => deleteRecording(uri) },
-    ]);
-  };
+  useFocusEffect(
+    useCallback(() => {
+      loadHistory();
+    }, [])
+  );
 
   const renderItem = ({ item }: any) => (
     <TouchableOpacity
       style={styles.item}
-      onPress={() => navigation.navigate("Report", { transcript: "", audioUri: item.uri })}
+      onPress={() =>
+        navigation.navigate("Report", {
+          transcript: item.transcript,
+          audioUri: item.audioUri,
+        })
+      }
     >
-      <View style={styles.itemContent}>
-        <FontAwesome name="file-audio-o" size={24} color="#007AFF" />
-        <Text style={styles.itemText}>{item.name}</Text>
-      </View>
-      <TouchableOpacity onPress={() => handleDelete(item.uri)}>
-        <FontAwesome name="trash" size={20} color="tomato" />
-      </TouchableOpacity>
+      <Text numberOfLines={1} style={styles.transcript}>
+        {item.transcript || "No transcript"}
+      </Text>
+      <Text style={styles.date}>{new Date(item.createdAt).toLocaleString()}</Text>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>History</Text>
       {loading ? (
         <ActivityIndicator size="large" color="#007AFF" />
+      ) : history.length === 0 ? (
+        <Text style={styles.empty}>No recordings found.</Text>
       ) : (
         <FlatList
           data={history}
-          keyExtractor={(item) => item.uri}
+          keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
-          contentContainerStyle={styles.list}
         />
       )}
     </View>
@@ -60,35 +59,26 @@ const HistoryScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    paddingTop: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#007AFF",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  list: {
-    gap: 12,
+    padding: 16,
   },
   item: {
-    backgroundColor: "#f0f0f0",
-    padding: 15,
-    borderRadius: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
   },
-  itemContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  itemText: {
+  transcript: {
     fontSize: 16,
-    color: "#333",
+    marginBottom: 4,
+  },
+  date: {
+    fontSize: 12,
+    color: "#666",
+  },
+  empty: {
+    marginTop: 32,
+    textAlign: "center",
+    color: "#666",
+    fontSize: 16,
   },
 });
 
