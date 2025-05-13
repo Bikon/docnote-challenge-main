@@ -28,20 +28,20 @@ function MainTabs() {
       }}
     >
       <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="home" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
         name="History"
         component={HistoryScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <FontAwesome name="list" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Recording"
+        component={HomeScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome name="microphone" size={size} color={color} />
           ),
         }}
       />
